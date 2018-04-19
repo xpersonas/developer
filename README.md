@@ -2,7 +2,7 @@
 This repository contains special developer files for reuse with other projects.
 
 ## GitHooks
-**pre-commit-drupal**
+### pre-commit-drupal ###
 
 Drupal-specific pre-commit hook that tests for various issues like:
 * PHP Syntax
