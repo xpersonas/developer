@@ -1,0 +1,204 @@
+#!/usr/bin/php
+<?php
+
+$error_found = false;
+
+$cwd = getcwd();
+
+exec('git diff --cached --name-only --diff-filter=ACM', $git_output);
+
+if (count($git_output) > 0) {
+  echo "Drupal pre-commit hook starting:\n";
+
+  foreach ($git_output AS $key => $file_w_path) {
+    $file_w_full_path = $cwd . '/' . $file_w_path;
+    $path_parts = pathinfo($file_w_full_path);
+
+    if (should_check_directory($path_parts)) {
+      $GLOBALS['file_contents'] = file_get_contents($file_w_full_path);
+      test_php($file_w_full_path, $path_parts, $error_found);
+      test_php_die($file_w_full_path, $path_parts, $error_found);
+      test_php_debug($file_w_full_path, $path_parts, $error_found);
+      test_drupal_debug($file_w_full_path, $path_parts, $error_found);
+      test_js_debug($file_w_full_path, $path_parts, $error_found);
+      test_placeholder($file_w_full_path, $path_parts, $error_found);
+      test_merge_conflict($file_w_full_path, $path_parts, $error_found);
+      test_drupal_coder($file_w_full_path, $path_parts, $error_found);
+    }
+  }
+
+  if ($error_found) {
+    echo "You have... issues.\n\n";
+    exit(200);
+  } else {
+    echo "Beautiful.\n\n";
+  }
+}
+else {
+  echo "Skipping Drupal pre-commit hook since there's no files to check.\n";
+}
+
+/**
+ * Check Certain Directories Only.
+ *
+ * We can't worry about every contrib/core file.
+ *
+ * @param $path_parts
+ * @return bool
+ */
+function should_check_directory($path_parts) {
+  $check_dirs = array('custom', 'features');
+  $dirs = explode('/', $path_parts['dirname']);
+  $matching_dirs = array_intersect($check_dirs, $dirs);
+  return count($matching_dirs) > 0;
+}
+
+/**
+ * Teset PHP Syntax.
+ *
+ * @param $file_w_full_path
+ * @param $path_parts
+ */
+function test_php($file_w_full_path, $path_parts, $error_found) {
+  $check_extensions = array('php', 'module', 'inc', 'inc.php', 'tpl.php');
+  if (in_array($path_parts['extension'], $check_extensions)) {
+    echo "\033[0;31m";
+    exec('php -l "' . $file_w_full_path . '"', $output, $status);
+    echo "\033[0m";
+    if ($status != 0) {
+      $GLOBALS['error_found'] = true;
+      _output_error(join("\n", $output));
+    }
+  }
+}
+
+/**
+ * PHPCodeSniffer.
+ *
+ * Check php code according to "DrupalPractice" and "Drupal" standards.
+ *
+ * @param $file_w_full_path
+ * @param $path_parts
+ */
+function test_drupal_coder($file_w_full_path, $path_parts, &$error_found) {
+  $check_extensions = array('php', 'module', 'inc', 'inc.php', 'tpl.php');
+  if (in_array($path_parts['extension'], $check_extensions)) {
+    // Must have phpcs installed globally on your machine, and have the proper
+    // standards installed.
+    $output = shell_exec("phpcs --standard=DrupalPractice,Drupal " . $file_w_full_path);
+    if (preg_match('/FOUND/', $output)) {
+      $error_found = true;
+    } else {
+    }
+    echo $output;
+  }
+}
+
+/**
+ * Check for Drupal/Twig Debugging.
+ *
+ * Make sure there are no debug statements left in php/twig code.
+ *
+ * @param $file_w_full_path
+ * @param $path_parts
+ */
+function test_drupal_debug($file_w_full_path, $path_parts, &$error_found) {
+  $check_extensions = array('php', 'module', 'install', 'inc', 'inc.php', 'tpl.php', 'html.twig');
+  _search_in_file($check_extensions, $path_parts['extension'], '/debug\(.*\)/i', 'debug() found.');
+  _search_in_file($check_extensions, $path_parts['extension'], '/dpm\(.*\)/i', 'dpm() found.');
+  _search_in_file($check_extensions, $path_parts['extension'], '/dsm\(.*\)/i', 'dsm() found.');
+  _search_in_file($check_extensions, $path_parts['extension'], '/kpr\(.*\)/i', 'kpr() found.');
+  _search_in_file($check_extensions, $path_parts['extension'], '/kint\(.*\)/i', 'kint() found.');
+  _search_in_file($check_extensions, $path_parts['extension'], '/dump\(.*\)/i', 'dump() found.');
+}
+
+/**
+ * Check for PHP Debugging.
+ *
+ * Make sure no php-specific debug commands are left in code.
+ *
+ * @param $file_w_full_path
+ * @param $path_parts
+ */
+function test_php_debug($file_w_full_path, $path_parts, &$error_found) {
+  $check_extensions = array('php', 'module', 'inc', 'inc.php', 'tpl.php');
+  _search_in_file($check_extensions, $path_parts['extension'], '/print_r\(.*\)/i', 'print_r() found.');
+}
+
+/**
+ * Check for Die Statements.
+ *
+ * Makes sure no die() functions are left in code.
+ *
+ * @param $file_w_full_path
+ * @param $path_parts
+ */
+function test_php_die($file_w_full_path, $path_parts, &$error_found) {
+  $check_extensions = array('php', 'module', 'inc', 'inc.php', 'tpl.php');
+  _search_in_file($check_extensions, $path_parts['extension'], '/die\(.*\)/i', 'die() found.');
+}
+
+/**
+ * Check for Javascript Debugging.
+ *
+ * Makes sure no console.log() functions are left in code.
+ *
+ * @param $file_w_full_path
+ * @param $path_parts
+ */
+function test_js_debug($file_w_full_path, $path_parts, &$error_found) {
+  $check_extensions = array('js');
+  _search_in_file($check_extensions, $path_parts['extension'], '/console\.log\(.*\)/i', 'console.log found.');
+}
+
+/**
+ * Check for Lorem Ipsum.
+ *
+ * Make sure no dummy text is left in code.
+ *
+ * @param $file_w_full_path
+ * @param $path_parts
+ */
+function test_placeholder($file_w_full_path, $path_parts, &$error_found) {
+  $check_extensions = array('js', 'php', 'module', 'inc', 'inc.php', 'tpl.php');
+  _search_in_file($check_extensions, $path_parts['extension'], '/lorem/i', 'Lorem placeholder text found.');
+}
+
+/**
+ * Check for Unresolved Merge Conflicts.
+ *
+ * @param $file_w_full_path
+ * @param $path_parts
+ */
+function test_merge_conflict($file_w_full_path, $path_parts, &$error_found) {
+  $msg = 'Merge conflict markers found.';
+  $check_extensions = array('info', 'js', 'php', 'module', 'inc');
+  _search_in_file($check_extensions, $path_parts['extension'], '/[><]{7}/', $msg);
+}
+
+/**
+ * Output Error Messages.
+ *
+ * @param $message
+ */
+function _output_error($message) {
+  echo "\033[0;31m" . $message . "\033[0m\n";
+}
+
+/**
+ * Search in File.
+ *
+ * @param $extensions
+ * @param $extension
+ * @param $pattern
+ * @param $error_message
+ */
+function _search_in_file($extensions, $extension, $pattern, $error_message) {
+  if (in_array($extension, $extensions)) {
+    if (preg_match_all($pattern, $GLOBALS['file_contents'], $matches)) {
+      $GLOBALS['error_found'] = true;
+      _output_error($error_message);
+    }
+  }
+}
+
