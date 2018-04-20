@@ -17,3 +17,7 @@ Drupal-specific pre-commit hook that tests for various issues like:
 This file adapted from [andrewmriley/drupal-site-precommit](https://github.com/andrewmriley/drupal-site-precommit/blob/master/pre-commit)
 
 ## Dotfiles
+* shell
+* tmux 
+* git config & ignore
+* tmuxinator session
