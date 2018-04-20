@@ -1,0 +1,43 @@
+# ~/.tmuxinator/eisforeveryone.yml
+
+name: eisforeveryone
+root: ~/Sites/work/drupal/evansville-branding-website
+
+windows:
+  - local:
+      #layout: 239e,210x87,0,0[210x49,0,0,0,210x37,0,50{74x37,0,50[74x18,0,50,4,74x18,0,69,17],135x37,75,50,6}
+      layout: 8ae0,210x87,0,0[210x49,0,0,0,210x18,0,50,6,210x18,0,69{105x18,0,69,18,104x18,106,69,19}]
+      panes:
+        - clear && git status
+        - cd web/ && sleep 10 && drush watchdog-show --tail --full
+        - kill $(ps aux | grep 'console-core/config/router.php' | grep -v 'grep' | awk '{print $2}') && drupal
+        - cd web/themes/custom/thread_2017 && gulp watch:styles
+  - redesign:
+      layout: tiled
+      panes:
+        - ssh agbdv6s4qansk-redesign-mlwwcia--app@ssh.us.platform.sh
+        - logs:
+            - ssh agbdv6s4qansk-redesign-mlwwcia--app@ssh.us.platform.sh
+            - cd web
+            - drush ws --tail --full
+        - platform app:list --project=agbdv6s4qansk --environment=redesign && platform db:size
+        - platform relationships --project=agbdv6s4qansk --environment=redesign
+  - staging:
+      layout: tiled
+      panes:
+        - ssh agbdv6s4qansk-staging-5em2ouy--app@ssh.us.platform.sh
+        - drush @evansville-branding-website.staging watchdog-show --tail --full
+        - platform relationships --project=agbdv6s4qansk --environment=staging
+        - platform app:list --project=agbdv6s4qansk --environment=staging && platform db:size
+  - live:
+      layout: tiled
+      panes:
+        - ssh agbdv6s4qansk-master-7rqtwti--app@ssh.us.platform.sh
+        - errors:
+            - ssh agbdv6s4qansk-master-7rqtwti--app@ssh.us.platform.sh
+            - tail -f /var/log/error.log
+        - deploys:
+            - ssh agbdv6s4qansk-master-7rqtwti--app@ssh.us.platform.sh
+            - tail -n 25 /var/log/deploy.log
+        - platform relationships --project=agbdv6s4qansk --environment=master
+        - platform app:list --project=agbdv6s4qansk --environment=master && platform db:size

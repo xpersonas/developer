@@ -1,0 +1,7 @@
+[user]
+name = xpersonas
+email = justin.neel@gmail.com
+[core]
+  excludesfile = /Users/grayloon/.gitignore_global
+  editor = vim
+  askpass = git-gui--askpass

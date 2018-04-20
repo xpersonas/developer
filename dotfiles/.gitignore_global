@@ -1,0 +1,70 @@
+# Gray Loon
+error_log
+!.gitignore
+
+# ##########################################################################
+# The items below are from different files hosted by
+# https://github.com/github/gitignore
+# ##########################################################################
+
+# ##########################################################################
+# Global/SVN.gitignoore
+.svn/
+
+# ##########################################################################
+# SublimeText.gitignore
+# cache files for sublime text
+*.tmlanguage.cache
+*.tmPreferences.cache
+*.stTheme.cache
+
+# workspace files are user-specific
+*.sublime-workspace
+
+# project files should be checked into the repository, unless a significant
+# proportion of contributors will probably not be using SublimeText
+# *.sublime-project
+
+# sftp configuration file
+sftp-config.json
+
+# ##########################################################################
+# Global/OSX.gitignore
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Icon must end with two \r
+Icon
+
+# Thumbnails
+._*
+
+# Files that might appear on external disk
+.Spotlight-V100
+.Trashes
+
+# Directories potentially created on remote AFP share
+.AppleDB
+.AppleDesktop
+
+# PhpStorm Stuff
+.idea
+
+# Drupal 8 Local Settings File
+settings.local.php
+
+# Drupal 7 Local Settings File
+secret.settings.php
+
+# Ignore bower components
+bower_components
+
+# Ignore npm components
+#node_modules
+
+# Ignore functional testing screenshot directory
+screenshots
+
+# Database dumps
+*--dump.sql
