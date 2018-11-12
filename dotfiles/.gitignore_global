@@ -48,8 +48,10 @@ Icon
 .AppleDB
 .AppleDesktop
 
-# PhpStorm Stuff
+# IDE
 .idea
+.vscode
+*.code-workspace
 
 # Drupal 8 Local Settings File
 settings.local.php
