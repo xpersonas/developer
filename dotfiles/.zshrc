@@ -20,8 +20,21 @@ alias egrepx='egrep -lriIs --exclude-dir=node_modules --exclude-dir=bower_compon
 alias egrepxl='egrep -riIs --exclude-dir=node_modules --exclude-dir=bower_components --exclude-dir=vendor --exclude-dir=_www --exclude-dir=var'
 alias logcheck='./logcheck.sh'
 alias cexitup='cd web; drush cex'
-alias gits='git status'
+alias gits='echo "we are not using this anymore!"'
+alias gc="git commit -m "
+alias gs="git status"
+alias gd="git diff"
+alias gf="git fetch"
+alias gm="git merge"
+alias gp="git push"
+alias gl="git log --pretty --oneline --graph"
+
 alias please='sudo $(fc -ln -1)'
+#alias swd='cd ~/Sites/work/drupal/'
+alias sws='cd ~/Sites/work/symfony/'
+swd() {
+    cd ~/Sites/work/drupal/"$1"
+}
 
 # Customize to your needs...
 
